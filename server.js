@@ -27,8 +27,9 @@ app.use('/api/auth', authRoutes);
 
 const PORT = process.env.PORT || 4000;
 
-mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+mongoose.connect(process.env.MONGODB_URI)
   .then(() => {
+    console.log('Connected to MongoDB'); // <-- Added confirmation message
     app.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);
     });

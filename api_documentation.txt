@@ -1,0 +1,229 @@
+# Pulpería System API Documentation
+
+## Authentication
+
+### POST /api/auth/login
+- Description: Authenticate user and return JWT token.
+- Body: 
+  - email (string)
+  - password (string)
+- Response: 
+  - token (string)
+
+### GET /api/auth/me
+- Description: Get information about the currently authenticated user.
+- Headers: 
+  - Authorization: Bearer <token>
+- Response: 
+  - User object
+
+### POST /api/auth/register-admin
+- Description: Register the first admin user. This endpoint is only available if there are no users in the system.
+- Body:
+  - name (string)
+  - email (string)
+  - password (string)
+- Response:
+  - message (string)
+  - admin (object: name, email, role)
+- Notes:
+  - After the first user is created, this endpoint will return a 403 error and cannot be used again.
+
+---
+
+## Products
+
+### GET /api/products
+- Description: List all products. Supports filtering by category and stock.
+- Query Parameters (optional):
+  - category (string)
+  - minStock (number)
+- Response: 
+  - Array of product objects
+
+### POST /api/products
+- Description: Create a new product.
+- Body: 
+  - code (string)
+  - name (string)
+  - category (string)
+  - purchasePrice (number)
+  - salePrice (number)
+  - stock (number)
+  - minStock (number)
+  - supplier (ObjectId)
+  - expiryDate (date, optional)
+  - isActive (boolean)
+  - presentation (string, optional)
+- Response: 
+  - Created product object
+
+### PUT /api/products/:id
+- Description: Update an existing product.
+- Params: 
+  - id (ObjectId)
+- Body: 
+  - Any updatable product fields
+- Response: 
+  - Updated product object
+
+### DELETE /api/products/:id
+- Description: Logical delete (set isActive to false).
+- Params: 
+  - id (ObjectId)
+- Response: 
+  - Updated product object
+
+---
+
+## Suppliers
+
+### GET /api/suppliers
+- Description: List all suppliers.
+- Response: 
+  - Array of supplier objects
+
+### POST /api/suppliers
+- Description: Create a new supplier.
+- Body: 
+  - name (string)
+  - phone (string)
+  - email (string, optional)
+  - address (string, optional)
+  - ruc (string, optional)
+- Response: 
+  - Created supplier object
+
+### PUT /api/suppliers/:id
+- Description: Update a supplier.
+- Params: 
+  - id (ObjectId)
+- Body: 
+  - Any updatable supplier fields
+- Response: 
+  - Updated supplier object
+
+### DELETE /api/suppliers/:id
+- Description: Delete a supplier.
+- Params: 
+  - id (ObjectId)
+- Response: 
+  - Success message
+
+---
+
+## Sales
+
+### GET /api/sales
+- Description: List all sales. Supports filtering by date and payment method.
+- Query Parameters (optional):
+  - date (date)
+  - paymentMethod (string)
+- Response: 
+  - Array of sale objects
+
+### POST /api/sales
+- Description: Register a new sale (validates stock).
+- Body: 
+  - date (date)
+  - items (array of { productId, quantity, unitPrice, subtotal })
+  - total (number)
+  - paymentMethod (string)
+  - cashReceived (number, if paymentMethod is "efectivo")
+  - change (number)
+  - transferRef (string, if paymentMethod is "transferencia")
+  - transferBank (string, if paymentMethod is "transferencia")
+  - transferVerified (boolean)
+  - userId (ObjectId)
+  - clientName (string, optional)
+- Response: 
+  - Created sale object
+
+### PUT /api/sales/:id/verify-transfer
+- Description: Mark a sale's transfer as verified.
+- Params: 
+  - id (ObjectId)
+- Response: 
+  - Updated sale object
+
+### PUT /api/sales/:id/cancel
+- Description: Cancel a sale and return stock to inventory.
+- Params:
+  - id (ObjectId)
+- Response:
+  - message (string)
+  - sale (object)
+
+---
+
+## Inventory
+
+### GET /api/inventory
+- Description: Get current inventory logs. Can include low stock alerts.
+- Response: 
+  - Array of inventory log objects
+
+### POST /api/inventory/entry
+- Description: Register a stock entry (purchase from supplier).
+- Body: 
+  - productId (ObjectId)
+  - quantity (number)
+  - date (date)
+  - notes (string)
+- Response: 
+  - Created inventory log object
+
+### POST /api/inventory/adjustment
+- Description: Register a manual stock adjustment.
+- Body: 
+  - productId (ObjectId)
+  - quantity (number)
+  - date (date)
+  - notes (string)
+- Response: 
+  - Created inventory log object
+
+---
+
+## Users
+
+### GET /api/users
+- Description: List all users.
+- Response: 
+  - Array of user objects
+
+### POST /api/users
+- Description: Create a new user.
+- Body: 
+  - name (string)
+  - email (string)
+  - password (string)
+  - role (string: "admin" or "empleado")
+  - isActive (boolean)
+- Response: 
+  - Created user object
+
+### PUT /api/users/:id
+- Description: Update a user.
+- Params: 
+  - id (ObjectId)
+- Body: 
+  - Any updatable user fields
+- Response: 
+  - Updated user object
+
+### DELETE /api/users/:id
+- Description: Delete a user.
+- Params: 
+  - id (ObjectId)
+- Response: 
+  - Success message
+
+---
+
+## Notes
+
+- All endpoints return JSON.
+- Some endpoints require authentication via JWT in the Authorization header.
+- Role-based access control is enforced for sensitive operations.
+- The `/api/auth/register-admin` endpoint is only available for the very first admin registration.
